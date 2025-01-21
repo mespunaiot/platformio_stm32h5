@@ -12,6 +12,13 @@
   "engines": {
     "platformio": "^6"
   },
+  "packages": {
+        "toolchain-gccarmnoneeabi": {
+            "type": "toolchain",
+            "owner": "platformio",
+            "version": "^1.90201.0"
+        }
+    },
   "repository": {
     "type": "git",
     "url": "https://github.com/mespunaiot/platformio_stm32h5.git"
