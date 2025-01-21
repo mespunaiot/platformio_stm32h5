@@ -1,0 +1,20 @@
+{
+  "name": "cmake",
+  "title": "cmake build system",
+  "description": "",
+  "homepage": "",
+  "license": "MIT License",
+  "keywords": [
+      "dev-platform",
+      "native",
+      "desktop"
+  ],
+  "engines": {
+    "platformio": "^6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mespunaiot/platformio_stm32h5.git"
+  },
+  "version": "1.2.1"
+}
