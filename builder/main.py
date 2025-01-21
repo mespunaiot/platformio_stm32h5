@@ -1,23 +1,10 @@
-# Copyright 2014-present PlatformIO <contact@platformio.org>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 """
-    Builder for native platform
+    Builder for custom platform
 """
 
 import os
-from SCons.Script import COMMAND_LINE_TARGETS, AlwaysBuild, Default, DefaultEnvironment
+import subprocess
+from SCons.Script import DefaultEnvironment
 
 env = DefaultEnvironment()
 
@@ -30,14 +17,61 @@ for k in ("CC", "CXX"):
 backup_cflags = env.get("CFLAGS", [])
 backup_cxxflags = env.get("CXXFLAGS", [])
 
-# Scan for GCC compiler
-env.Tool("gcc")
-env.Tool("g++")
+def find_top_level_cmake(root_dir):
+    """
+    Search for the top-level CMakeLists.txt file within the src directory.
+    """
+    cmake_files = []
+    for dirpath, dirnames, filenames in os.walk(root_dir):
+        if "CMakeLists.txt" in filenames:
+            cmake_files.append(os.path.join(dirpath, "CMakeLists.txt"))
+    if not cmake_files:
+        raise FileNotFoundError("No CMakeLists.txt found in the src directory")
 
-## Custom build
-print("Here is our custom build process starting!!")
+    # Sort by path length to find the top-level CMakeLists.txt
+    top_level_cmake = sorted(cmake_files, key=lambda x: len(x.split(os.sep)))[0]
+    return top_level_cmake
 
-print("Update test")
+def configure_and_build(cmake_file):
+    """
+    Configure and build the project using CMake.
+    """
+    build_dir = os.path.join(os.path.dirname(cmake_file), "build")
 
-cwd = os.getcwd()
-print("Working dir ", cwd)
+    # Create build directory if it doesn't exist
+    if not os.path.exists(build_dir):
+        os.makedirs(build_dir)
+
+    print(f"Configuring CMake project in {build_dir}...")
+    try:
+        # Configure CMake
+        subprocess.run(
+            ["cmake", "-B", build_dir, "-S", os.path.dirname(cmake_file)],
+            check=True
+        )
+        print("CMake configuration successful")
+
+        # Build the project
+        print("Building the project...")
+        subprocess.run(
+            ["cmake", "--build", build_dir],
+            check=True
+        )
+        print("CMake build successful")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during CMake process: {e}")
+        raise
+
+# Find the top-level CMakeLists.txt in the src directory
+src_dir = os.path.join(env.subst("$PROJECT_DIR"), "src")
+print(f"Searching for CMakeLists.txt in {src_dir}...")
+try:
+    cmake_file = find_top_level_cmake(src_dir)
+    print(f"Top-level CMakeLists.txt found at: {cmake_file}")
+
+    # Configure and build the project
+    configure_and_build(cmake_file)
+
+except FileNotFoundError as e:
+    print(e)
+    print("Aborting build process due to missing CMakeLists.txt.")
