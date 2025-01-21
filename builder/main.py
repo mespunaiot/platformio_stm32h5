@@ -16,6 +16,7 @@
     Builder for native platform
 """
 
+import os
 from SCons.Script import COMMAND_LINE_TARGETS, AlwaysBuild, Default, DefaultEnvironment
 
 env = DefaultEnvironment()
@@ -35,3 +36,6 @@ env.Tool("g++")
 
 ## Custom build
 print("Here is our custom build process starting!!")
+
+cwd = os.getcwd()
+print("Working dir ", cwd)
