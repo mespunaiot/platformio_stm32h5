@@ -37,5 +37,7 @@ env.Tool("g++")
 ## Custom build
 print("Here is our custom build process starting!!")
 
+print("Update test")
+
 cwd = os.getcwd()
 print("Working dir ", cwd)
